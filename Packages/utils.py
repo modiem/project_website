@@ -1,10 +1,12 @@
+import os
 import herepy
 
-HERE_API_KEY = 'hghATdDoB9O87DeDmJ3uZlcLjx5j7vsfL9eivAGhRRI'
+HERE_API_KEY=os.environ.get('HERE_API_KEY')
 
 ###################
 #  GEOCODER HERE  #
 ###################
+
 def geocoder_here(adress, token=HERE_API_KEY):
     """
     adress: NewYork libery
@@ -26,4 +28,8 @@ def reverse_geocoder_here(coords, token=HERE_API_KEY):
     res = geocoderReverseApi.retrieve_addresses(coords)
     res = res.as_dict()
     adress = res['items'][0]['address']['label']
-    return adress
+    lat = res['items'][0]['position']['lat']
+    lng = res['items'][0]['position']['lng']
+    return {"adress":adress, "lat":lat, "lng":lng}
+
+
