@@ -19,6 +19,9 @@ heroku_login:
 heroku_create_app:
 	-@heroku create ${APP_NAME}
 
+heroku_set_var:
+	-@heroku config:set []
+
 deploy_heroku:
 	-@git push heroku master
 	-@heroku ps:scale web=1
