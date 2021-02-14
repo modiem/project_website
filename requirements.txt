@@ -1,1 +1,2 @@
 streamlit
+herepy==3.3.0
