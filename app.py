@@ -1,14 +1,23 @@
 import streamlit as st 
 import datetime
+import time
 import requests
 import pandas as pd
 from Packages.utils import geocoder_here, reverse_geocoder_here
+from Packages.utils import query_api, format_name, get_poster, get_movie_info
+from Packages.gcp import get_movie_name_lst
 
-TAXIFARE_API = "https://predict-taxifare-iwuisdewea-ez.a.run.app/predict_fare"
+st.set_page_config(
+    page_title="My project gallary",
+    page_icon="🎃",
+    layout="centered", # wide
+    initial_sidebar_state="auto") # collapsed
+
+st.sidebar.header("Navigation")
+page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation"))
 
 def main():
-    st.sidebar.header("Navigation")
-    page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction"))
+    
     if page == "Taxifare Prediction":
         '''
         # Taxi Fare Prediction
@@ -72,13 +81,65 @@ def main():
             passenger_count=passenger_count
         )
 
-        response = requests.get(TAXIFARE_API, params=params)
+        pred = query_api("taxifare", params)["prediction"]
 
-        prediction = response.json()
-        pred = prediction['prediction']
         if st.button('Calculate Taxifare'):
-            st.write("Taxi Fare:", pred)
+            st.write(f"Taxi Fare: {round(pred, 2)}")
+    
+    if page == "Movie Recommendation":
+        '''
+        # Movie Recommendation
+
+        This page queries a [movie recommendation API]
+        (https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)'''
+        
+
+        @st.cache
+        def get_select_box_data():
+            return get_movie_name_lst().tolist()
+
+        name_lst = get_select_box_data()
+
+        options = st.multiselect('Choose all the movies you like', name_lst, ["Shawshank Redemption, The (1994)"])
+        options = [f"{option}" for option in options]
+        samples = ", '".join(options)
+        n_movies = st.slider('How many recommendations do you require?', 1, 5, 1)
+        basis="hybrid"
+        '''
+        By default, the recommendations would be gererated according to the `movie metadata (Genres, Tag)` and the `viewer rating`. 
+        
+        Optionally, you can change the recommendation basis by checking the box below.
+        '''
+        with st.beta_expander("Change basis"):
+            basis=st.radio("to", ["metadata", "rating"])
+        
+        params = dict(samples=samples,
+                      n_movies=n_movies,
+                      basis=basis)
+        
+        progress_bar_placeholder = st.empty()
+        start_time = time.time()
+        if samples:
+            recommendations = query_api("movie_recommendation", params)["recommendations"]
+        
+        end_time = time.time()
+
+        if placeholder.button("Display Recommendaitons"):
+            for i, recommendation in enumerate(recommendations):
+                title=format_name(recommendation["name"])["title"]
+                img = get_poster(recommendation['name'])
+                info = get_movie_info(recommendation['name'])
+                ### lay out
+                col1, col2 = placeholder.beta_columns(2)
+                # The 1st column display movie infomations.
+                col1.markdown(f"#### No.{i+1}: `{round(recommendation['similarity'], 3) * 100}%` Similarity")
+                col1.markdown(f"## :clapper: {title}")
+                for k,v in info.items():
+                    col1.markdown(f" :small_orange_diamond: **{k}:** {v}")
+                # The 2ed column show the poster
+                if img:
+                    col2.image(img, use_column_width=True)
+                
 
 if __name__ == "__main__":
-
     main()
