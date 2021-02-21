@@ -5,6 +5,7 @@ import requests
 import pandas as pd
 from Packages.utils import geocoder_here, reverse_geocoder_here
 from Packages.utils import query_api, format_name, get_poster, get_movie_info
+# from Packages.confirm_button_hack import cache_on_button_press
 from Packages.gcp import get_movie_name_lst
 
 st.set_page_config(
@@ -17,7 +18,6 @@ st.sidebar.header("Navigation")
 page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation"))
 
 def main():
-    
     if page == "Taxifare Prediction":
         '''
         # Taxi Fare Prediction
@@ -92,54 +92,81 @@ def main():
 
         This page queries a [movie recommendation API]
         (https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)'''
-        
+
 
         @st.cache
         def get_select_box_data():
             return get_movie_name_lst().tolist()
-
         name_lst = get_select_box_data()
-
-        options = st.multiselect('Choose all the movies you like', name_lst, ["Shawshank Redemption, The (1994)"])
-        options = [f"{option}" for option in options]
-        samples = ", '".join(options)
-        n_movies = st.slider('How many recommendations do you require?', 1, 5, 1)
-        basis="hybrid"
-        '''
-        By default, the recommendations would be gererated according to the `movie metadata (Genres, Tag)` and the `viewer rating`. 
         
-        Optionally, you can change the recommendation basis by checking the box below.
+
+        ############################################
+        ### Get & format params from user input ####
+        ############################################
+        "**☝️ To get started, please select all the movies you've enjoyed!**"
+        options = st.multiselect('Type and select the title...', name_lst, ["Shawshank Redemption, The (1994)"])
+        samples = ", '".join([f"{option}" for option in options])
+        
+        "**👉 How many recommendaitons do you want to see?**"
+        n_movies = st.slider('Select from 1 to 10: ', 1, 10, 1)
+        
+        "**👉 Tweak recommendation Basis (Optional)**"
         '''
+        By default, recommendations would be talored based on a hybrid of `metadata (Genres, Tag)` and `viewer rating` of the chosen movies.  
+        Optionally, you can change the recommendation basis down below.
+        '''
+        basis="hybrid"
         with st.beta_expander("Change basis"):
-            basis=st.radio("to", ["metadata", "rating"])
+            basis=st.radio("", ["metadata", "rating"])
+
+        '''
+        
+          
+        '''
         
         params = dict(samples=samples,
                       n_movies=n_movies,
                       basis=basis)
         
-        progress_bar_placeholder = st.empty()
-        start_time = time.time()
+
+        ###########################################
+        # Query api to get recommendation results #
+        ###########################################
         if samples:
             recommendations = query_api("movie_recommendation", params)["recommendations"]
-        
-        end_time = time.time()
-
-        if placeholder.button("Display Recommendaitons"):
-            for i, recommendation in enumerate(recommendations):
-                title=format_name(recommendation["name"])["title"]
-                img = get_poster(recommendation['name'])
-                info = get_movie_info(recommendation['name'])
-                ### lay out
-                col1, col2 = placeholder.beta_columns(2)
-                # The 1st column display movie infomations.
-                col1.markdown(f"#### No.{i+1}: `{round(recommendation['similarity'], 3) * 100}%` Similarity")
-                col1.markdown(f"## :clapper: {title}")
-                for k,v in info.items():
+    
+        def display_recommendation(i, recommendations):
+            recommendation=recommendations[i]
+            title=format_name(recommendation["name"])["title"]
+            img = get_poster(recommendation['name'])
+            info = get_movie_info(recommendation['name'])
+            similarity = round(recommendation['similarity'], 3) * 100
+            # The 1st column display movie infomations.
+            col1, col2 = st.beta_columns(2)
+            col1.markdown(f"#### No.{i+1}: `{similarity}%` Similarity")
+            col1.markdown(f"## :clapper: {title}")
+            for k,v in info.items():
+                if v:
                     col1.markdown(f" :small_orange_diamond: **{k}:** {v}")
-                # The 2ed column show the poster
-                if img:
-                    col2.image(img, use_column_width=True)
-                
+            # The 2ed column show the poster
+            if img:
+                col2.image(img, use_column_width=True)
+
+        ################
+        ### Display ####
+        ################
+        _, col_m, _ = st.beta_columns(3)
+        confirm = col_m.empty()
+
+        if confirm.button("📬 Check it!"):
+            confirm.write(" ")
+            display_recommendation(0, recommendations)
+            st.markdown('<div style="text-align: center;">🎞                          🎞</div>',unsafe_allow_html=True)
+            for i in range(len(recommendations)):
+                if i > 0:
+                    with st.beta_expander("Next One 🍿"):
+                        display_recommendation(i,recommendations)
+                        
 
 if __name__ == "__main__":
     main()
