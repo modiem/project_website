@@ -47,7 +47,7 @@ def main():
         col1, col2, col3 = st.beta_columns(3)
 
         
-        image = Image.open("data/circle-me.png")
+        image = Image.open("img/circle-me.png")
         col2.image(image, use_column_width=True)
 
     if page == "Taxifare Prediction":
