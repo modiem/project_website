@@ -14,29 +14,15 @@ st.set_page_config(
     page_icon="🎃",
     layout="centered", # wide
     initial_sidebar_state="auto") # collapsed
-
-CSS= '''
-h1 {
-    color: #14213d;
-    text-align: center;
-}
-h2, h3, h4, h5, h6 {
-    color: #14213d;
-    text-align: center;
-}
-body {
-    background-color: #ffb4a2;
-    color: #fca311;
-}
-/* side bar */
-section.css-1lcbmhc.e1fqkh3o0 > div.css-1aumxhk.e1fqkh3o1 {
-    background-image: linear-gradient(#ddbea9, #ffe8d6,#ddbea9);
-    color: white;
-}
-button.css-2trqyj.edgvbvh1 {
-background-color: #ffe8d6;
-}
-'''
+CSS='''
+            h1, h2, h3, h4 {
+                text-align: center;
+                color: #1D3C26
+            }
+            body {
+                color: #1D3C26
+            }
+        '''
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.sidebar.markdown('## Navigation')
@@ -44,6 +30,17 @@ page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommen
 
 def main():
     if page == "Home":
+        css= '''
+                    h1 {
+                        color: #EADFCE;
+                        text-align: center;
+                    }
+                    body {
+                        background-color: #1D3C26;
+                    }
+                    '''
+        st.write(f'<style>{css}</style>', unsafe_allow_html=True)
+
         
         "# Welcome to my project gallary!"
         
@@ -54,10 +51,13 @@ def main():
         col2.image(image, use_column_width=True)
 
     if page == "Taxifare Prediction":
+
         '''
-        ## Taxi Fare Prediction
+        # Taxi Fare Prediction
+
         This page queries a [taxi fare model API]
-        (https://predict-taxifare-iwuisdewea-ez.a.run.app/predict_fare)'''
+        (https://predict-taxifare-iwuisdewea-ez.a.run.app/predict_fare)
+        '''
 
 
 
@@ -123,7 +123,8 @@ def main():
     if page == "Movie Recommendation":
         
         '''
-        ## Movie Recommendation
+        # Movie Recommendation
+
         This page queries a [movie recommendation API]
         (https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)
         '''
