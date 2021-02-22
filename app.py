@@ -117,7 +117,7 @@ def main():
         '''
         basis="hybrid"
         with st.beta_expander("Change basis"):
-            basis=st.radio("", ["metadata", "rating"])
+            basis=st.radio("", ["metadata", "rating", "hybrid"])
 
         '''
         
@@ -141,14 +141,18 @@ def main():
             img = get_poster(recommendation['name'])
             info = get_movie_info(recommendation['name'])
             similarity = round(recommendation['similarity'], 3) * 100
+            ###########################################
             # The 1st column display movie infomations.
+            ############################################
             col1, col2 = st.beta_columns(2)
-            col1.markdown(f"#### No.{i+1}: `{similarity}%` Similarity")
-            col1.markdown(f"## :clapper: {title}")
+            col1.markdown(f"#### `{similarity}%` Similarity")
+            col1.markdown(f"### :clapper: {title}")
             for k,v in info.items():
-                if v:
+                if k != "Poster" and v and v != "N/A":
                     col1.markdown(f" :small_orange_diamond: **{k}:** {v}")
-            # The 2ed column show the poster
+            ##################################
+            #  The 2ed column show the poster
+            #################################
             if img:
                 col2.image(img, use_column_width=True)
 
@@ -159,12 +163,12 @@ def main():
         confirm = col_m.empty()
 
         if confirm.button("📬 Check it!"):
-            confirm.write(" ")
+            # confirm.markdown(f'<div style="text-align: center;">🕛</div>',unsafe_allow_html=True)
             display_recommendation(0, recommendations)
-            st.markdown('<div style="text-align: center;">🎞                          🎞</div>',unsafe_allow_html=True)
             for i in range(len(recommendations)):
                 if i > 0:
-                    with st.beta_expander("Next One 🍿"):
+                    title = format_name(recommendations[i]['name'])["title"]
+                    with st.beta_expander(f"🍿 No.{i+1}: {title}"):
                         display_recommendation(i,recommendations)
                         
 
