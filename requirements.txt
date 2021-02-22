@@ -1,5 +1,5 @@
 wikipedia==1.4.0
-pandas==1.2.2
+pandas
 google-cloud-storage==1.36.0
 googlemaps==4.4.2
 joblib==1.0.1
