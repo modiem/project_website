@@ -3,6 +3,7 @@ import datetime
 import time
 import requests
 import pandas as pd
+from PIL import Image
 from Packages.utils import geocoder_here, reverse_geocoder_here
 from Packages.utils import query_api, format_name, get_poster, get_movie_info
 # from Packages.confirm_button_hack import cache_on_button_press
@@ -14,14 +15,47 @@ st.set_page_config(
     layout="centered", # wide
     initial_sidebar_state="auto") # collapsed
 
-st.sidebar.header("Navigation")
+CSS= '''
+h1 {
+    color: #14213d;
+    text-align: center;
+}
+h2, h3, h4, h5, h6 {
+    color: #14213d;
+    text-align: center;
+}
+body {
+    background-color: #ffb4a2;
+    color: #fca311;
+}
+/* side bar */
+section.css-1lcbmhc.e1fqkh3o0 > div.css-1aumxhk.e1fqkh3o1 {
+    background-image: linear-gradient(#ddbea9, #ffe8d6,#ddbea9);
+    color: white;
+}
+button.css-2trqyj.edgvbvh1 {
+background-color: #ffe8d6;
+}
+'''
+st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
+
+st.sidebar.markdown('## Navigation')
 page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation"))
 
 def main():
+    if page == "Home":
+        
+        "# Welcome to my project gallary!"
+        
+        col1, col2, col3 = st.beta_columns(3)
+
+        
+        image = Image.open("data/circle-me.png")
+        col2.image(image, use_column_width=True)
+
     if page == "Taxifare Prediction":
         '''
-        # Taxi Fare Prediction
-
+        ## Taxi Fare Prediction
         This page queries a [taxi fare model API]
         (https://predict-taxifare-iwuisdewea-ez.a.run.app/predict_fare)'''
 
@@ -84,14 +118,15 @@ def main():
         pred = query_api("taxifare", params)["prediction"]
 
         if st.button('Calculate Taxifare'):
-            st.write(f"Taxi Fare: {round(pred, 2)}")
+            st.markdown(f"Taxi Fare: `${round(pred, 2)}`")
     
     if page == "Movie Recommendation":
+        
         '''
-        # Movie Recommendation
-
+        ## Movie Recommendation
         This page queries a [movie recommendation API]
-        (https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)'''
+        (https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)
+        '''
 
 
         @st.cache
@@ -103,16 +138,16 @@ def main():
         ############################################
         ### Get & format params from user input ####
         ############################################
-        "**☝️ To get started, please select all the movies you've enjoyed!**"
+        "**☝️ To get started, please select one or more movies you've enjoyed!**"
         options = st.multiselect('Type and select the title...', name_lst, ["Shawshank Redemption, The (1994)"])
         samples = ", '".join([f"{option}" for option in options])
         
         "**👉 How many recommendaitons do you want to see?**"
         n_movies = st.slider('Select from 1 to 10: ', 1, 10, 1)
         
-        "**👉 Tweak recommendation Basis (Optional)**"
+        "**👉 Tweak Recommendation Basis (Optional)**"
         '''
-        By default, recommendations would be talored based on a hybrid of `metadata (Genres, Tag)` and `viewer rating` of the chosen movies.  
+        By default, recommendations would be talored based on a hybrid of `Metadata (Genres, Tag)` and `Viewer Rating` of the chosen movies.  
         Optionally, you can change the recommendation basis down below.
         '''
         basis="hybrid"
