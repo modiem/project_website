@@ -7,6 +7,8 @@ herepy==3.3.0
 streamlit==0.76.0
 Pillow==8.1.0
 requests==2.25.1
+matplotlib
+google-cloud-translate==2.0.1
 
 
 
