@@ -8,6 +8,7 @@ streamlit==0.76.0
 Pillow==8.1.0
 requests==2.25.1
 matplotlib
+seaborn
 google-cloud-translate==2.0.1
 
 
