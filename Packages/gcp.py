@@ -33,3 +33,17 @@ def get_movie_name_lst():
     os.remove(f"{filename}")
     print(f"{filename} deleted.")
     return name_lst
+
+def get_gyms():
+    filename="sports_provider_Amsterdam.csv"
+    creds = get_credentials()
+    client = storage.Client(credentials=creds, project=PROJECT_ID).bucket(BUCKET_NAME)   
+    storage_location = f"gyms/{filename}"
+    blob = client.blob(storage_location)
+    blob.download_to_filename(f"{filename}")
+    print(f"{filename} saved.")
+    df = pd.read_csv(f"{filename}")
+    os.remove(f"{filename}")
+    print(f"{filename} deleted.")
+    return df
+
