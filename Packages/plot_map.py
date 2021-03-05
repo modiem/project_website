@@ -28,7 +28,7 @@ sport_template = dict(
                                   yanchor="top",
                                   yref="paper",
                                   ),
-                        margin={"r":0,"t":100,"l":0,"b":0},
+                        margin={"r":0,"t":0,"l":0,"b":0},
                         coloraxis_colorbar=dict(
                                   outlinewidth = 0),
 ))
@@ -45,7 +45,7 @@ def plot_district_choropleth(pallete="fall",
     '''
     district_count = pd.DataFrame(df.groupby("Stadsdeel").count()["Naam"]).reset_index()
     district_count = district_count.rename(columns={"Stadsdeel": "District", "Naam": "Count"})
-    district_count["text"] = district_count["District"] + '<br>' + '<br>'+district_count["Count"].astype(str) + " Sports Providers in the District."
+    district_count["text"] = district_count["District"] + '<br>' + '<br>'+district_count["Count"].astype(str) + " Gyms in "+ district_count["District"]
 
     fig=px.choropleth(district_count,
                       geojson=geojson,
@@ -53,12 +53,13 @@ def plot_district_choropleth(pallete="fall",
                       color="Count",
                       color_continuous_scale=pallete,
                       range_color=(1,207),
-                      labels={"Count": "Number of Sports Providers"},
+                      labels={"Count": "Counts"},
                       hover_name="District",
                       hover_data=["Count"],
                       featureidkey="properties.Stadsdeel",
                       projection="mercator",
-                      title = "Amsterdam Sports Provider Concentration<br>(Hover for break down)")
+                    #   title = "Amsterdam Sports Provider Concentration<br>(Hover for break down)"
+                      )
     fig.update_geos(visible=False, # hide the base map and frame.
                     fitbounds="locations") #automatically zoom the map to show just the area of interest.
    
@@ -85,14 +86,14 @@ def plot_treemap_all(pallete="fall", df=None, template=sport_template):
     fig.update_traces(go.Treemap(
         textinfo = "label",
         texttemplate = "%{label}<br><br>Percentage: %{percentParent:.1%} <br>Count: %{value}<br>",
-        hovertemplate = "  %{label}  ",
+        hovertemplate = "%{label}  <br>Count: %{value}",
         outsidetextfont = {"size": 20},
     )
                      )
 
     fig.update_layout(
-        title = dict(
-            text = "Proportion of Sports Type<br> (Click to Expand)"),
+        # title = dict(
+        #     text = "Proportion of Sports Type<br> (Click to Expand)"),
         coloraxis_colorbar=dict(
             title="Counts",
             tickvals=[10,30, 50, 70]),
@@ -113,15 +114,15 @@ def plot_treemap_district(pallete="fall", df=None, template=sport_template):
                     )
 
     fig.update_traces(go.Treemap(
-        hovertemplate = "%{label}",
+        hovertemplate = "%{label}  <br>Count: %{value}",
         texttemplate = "%{label}<br><br>Percentage: %{percentParent:.1%} <br>Count: %{value}<br>",
         outsidetextfont = {"size": 20}
     )
                      )
 
     fig.update_layout(
-        title = dict(
-            text = "Proportion of Sports Type<br>(Click to Expand)",),
+        # title = dict(
+        #     text = "Proportion of Sports Type<br>(Click to Expand)",),
         coloraxis_colorbar=dict(
             title="Counts",
         ),

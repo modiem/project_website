@@ -12,7 +12,7 @@ from Packages import plot_map
 from streamlit_folium import folium_static
 
 st.set_page_config(
-    page_title="My project gallary",
+    page_title="My project",
     page_icon="🎃",
     layout="centered", # wide
     initial_sidebar_state="auto") # collapsed
@@ -28,12 +28,12 @@ CSS='''
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.sidebar.markdown('## Navigation')
-page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation", "Data Visualisation: Amsterdam Gyms"))
+page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation", "Data Viz--Gyms in Amsterdam"))
 
 def main():
     if page == "Home":
         css= '''
-                    h1 {
+                    h1, p {
                         color: #EADFCE;
                         text-align: center;
                     }
@@ -43,17 +43,35 @@ def main():
                     '''
         st.write(f'<style>{css}</style>', unsafe_allow_html=True)
 
+        '''
+        # Welcome to My Project Gallery!
+        '''
         
-        "# Welcome to my project gallary!"
         
         col1, col2, col3 = st.beta_columns(3)
 
-        
         image = Image.open("img/circle-me.png")
         col2.image(image, use_column_width=True)
 
-    if page == "Taxifare Prediction":
+        '''
+        
+        👉 [Source Code](https://github.com/modiem/project_website)
 
+        '''
+        st.write('<a href = "mailto: moyang.diem@example.com">👉 Any Comment?</a>', unsafe_allow_html=True)
+        
+        
+        
+        
+
+    if page == "Taxifare Prediction":
+       
+        css= '''
+                    body {
+                        background-color: #C1CDCD;
+                    }
+                    '''
+        st.write(f'<style>{css}</style>', unsafe_allow_html=True)
         '''
         # Taxi Fare Prediction
 
@@ -120,8 +138,9 @@ def main():
 
         pred = query_api("taxifare", params)["prediction"]
 
-        if st.button('Calculate Taxifare'):
-            st.markdown(f"Taxi Fare: `${round(pred, 2)}`")
+        col1, col2, col3 = st.beta_columns(3)
+        if col2.button('Calculate Taxifare'):
+            col2.markdown(f"Taxi Fare: `${round(pred, 2)}`")
     
     if page == "Movie Recommendation":
         css= '''
@@ -155,6 +174,7 @@ def main():
         
         "**👉 How many recommendaitons do you want to see?**"
         n_movies = st.slider('Select from 1 to 10: ', 1, 10, 1)
+        st.write(n_movies)
         
         "**👉 Tweak Recommendation Basis (Optional)**"
         '''
@@ -217,7 +237,7 @@ def main():
                     with st.beta_expander(f"🍿 No.{i+1}: {title}"):
                         display_recommendation(i,recommendations)
                         
-    if page == "Data Visualisation: Amsterdam Gyms":
+    if page == "Data Viz--Gyms in Amsterdam":
         
         @st.cache
         def get_gym_df():
@@ -227,7 +247,8 @@ def main():
         
 
         '''
-        # Amsterdam Gyms
+        # Gyms in Amsterdam
+        **Intro:**<br>
         This project uses choropleth map and heat map to display infomation of Amsterdam sports providers.
         
         All data comes from [Amsterdam Municipality Website] (https://data.amsterdam.nl/):
@@ -237,30 +258,32 @@ def main():
         - [Amsterdam District Geojson](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
             - The json file provides geographical features of Amsterdam districts.
 
-        **Picky about Color?** 
-        '''
-        pallete=st.radio('👉 Choose your own pallate', ['brwnyl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
-        '''
-        ### 🗺️ Choropleth Map
-        '''
-        st.markdown('<p style="text-align: center;">The choropleth map describing the distribution of gyms in Amsterdam.</p>', unsafe_allow_html=True)
         
-        with st.beta_expander("⬇️ On mapbox"):
-            st.plotly_chart(plot_map.plot_district_choropleth(pallete=pallete, df =df))
-        with st.beta_expander("🛣️ In the form of Open Street "):
-            folium_static(plot_map.plot_choropleth_openstreet(df=df))
         '''
-        ### 🌳 TreeMap
+        pallete= "fall"
+        # '👉 Choose your own pallate': ['brwnyl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo']
+        '''
+        ## 🗺️ Choropleth Map
+        '''
+        st.markdown('<p style="text-align: center; font-style: oblique;">This choropleth map describing the distribution of gyms in Amsterdam.</p>', unsafe_allow_html=True)
+        
+        # with st.beta_expander("⬇️ Show map"):
+        st.plotly_chart(plot_map.plot_district_choropleth(pallete=pallete, df =df))
+        # with st.beta_expander("🛣️ In the form of Open Street "):
+        #     folium_static(plot_map.plot_choropleth_openstreet(df=df))
+        '''
+        ## 🌳 TreeMap
         '''
         text = '''
-        The TreeMap interactively display the proportion of different type of gyms.<br>
-        💡 Recommend Full Sceen view.
+        This TreeMap interactively displays the proportion of different gym types in each district.<br>
+        💡 Click node/leaf for details.
+        (Full-Sceen View Recommended)
         '''
-        st.markdown(f'<p style="text-align: center;">{text}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="text-align: center; font-style: oblique;">{text}</p>', unsafe_allow_html=True)
 
-        
-        with st.beta_expander("🍩 Divided in city districts"):
-            st.write(plot_map.plot_treemap_district(pallete=pallete, df=df))
+        st.write(plot_map.plot_treemap_district(pallete=pallete, df=df))
+        # with st.beta_expander("🍩 Divided in city districts"):
+            
         with st.beta_expander("🏙️ Amsterdam as a Whole"):
             st.write(plot_map.plot_treemap_all(pallete=pallete, df=df))
 
