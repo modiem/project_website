@@ -7,7 +7,9 @@ from PIL import Image
 from Packages.utils import geocoder_here, reverse_geocoder_here
 from Packages.utils import query_api, format_name, get_poster, get_movie_info
 # from Packages.confirm_button_hack import cache_on_button_press
-from Packages.gcp import get_movie_name_lst
+from Packages.gcp import get_movie_name_lst, get_gyms
+from Packages import plot_map
+from streamlit_folium import folium_static
 
 st.set_page_config(
     page_title="My project gallary",
@@ -26,7 +28,7 @@ CSS='''
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.sidebar.markdown('## Navigation')
-page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation"))
+page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation", "Data Visualisation: Amsterdam Gyms"))
 
 def main():
     if page == "Home":
@@ -57,6 +59,7 @@ def main():
 
         This page queries a [taxi fare model API]
         (https://predict-taxifare-iwuisdewea-ez.a.run.app/predict_fare)
+         built with FastAPI, Docker, Google Cloud Run.(See [Source Code](https://github.com/modiem/taxifare))
         '''
 
 
@@ -121,12 +124,19 @@ def main():
             st.markdown(f"Taxi Fare: `${round(pred, 2)}`")
     
     if page == "Movie Recommendation":
+        css= '''
+    
+                    body {
+                        background-color: #EAE7D6;
+                    }
+                    '''
+        st.write(f'<style>{css}</style>', unsafe_allow_html=True)
         
         '''
         # Movie Recommendation
 
-        This page queries a [movie recommendation API]
-        (https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)
+        This page queries a [movie recommendation API](https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)
+         built with FastAPI, Docker, Google Cloud Run.(See [Source Code](https://github.com/modiem/Movie-Recommendation))
         '''
 
 
@@ -207,6 +217,52 @@ def main():
                     with st.beta_expander(f"🍿 No.{i+1}: {title}"):
                         display_recommendation(i,recommendations)
                         
+    if page == "Data Visualisation: Amsterdam Gyms":
+        
+        @st.cache
+        def get_gym_df():
+            return get_gyms()
+
+        df = get_gym_df()
+        
+
+        '''
+        # Amsterdam Gyms
+        This project uses choropleth map and heat map to display infomation of Amsterdam sports providers.
+        
+        All data comes from [Amsterdam Municipality Website] (https://data.amsterdam.nl/):
+
+        - [Amsterdam Sports Providers (download)](https://api.data.amsterdam.nl/dcatd/datasets/a6WW_Ay-oeY_dQ/purls/aT3gGdCZycJHjg)
+            - The csv file contains gym infomation including name, category, address and website.
+        - [Amsterdam District Geojson](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
+            - The json file provides geographical features of Amsterdam districts.
+
+        **Picky about Color?** 
+        '''
+        pallete=st.radio('👉 Choose your own pallate', ['brwnyl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
+        '''
+        ### 🗺️ Choropleth Map
+        '''
+        st.markdown('<p style="text-align: center;">The choropleth map describing the distribution of gyms in Amsterdam.</p>', unsafe_allow_html=True)
+        
+        with st.beta_expander("⬇️ On mapbox"):
+            st.plotly_chart(plot_map.plot_district_choropleth(pallete=pallete, df =df))
+        with st.beta_expander("🛣️ In the form of Open Street "):
+            folium_static(plot_map.plot_choropleth_openstreet(df=df))
+        '''
+        ### 🌳 TreeMap
+        '''
+        text = '''
+        The TreeMap interactively display the proportion of different type of gyms.<br>
+        💡 Recommend Full Sceen view.
+        '''
+        st.markdown(f'<p style="text-align: center;">{text}</p>', unsafe_allow_html=True)
+
+        
+        with st.beta_expander("🍩 Divided in city districts"):
+            st.write(plot_map.plot_treemap_district(pallete=pallete, df=df))
+        with st.beta_expander("🏙️ Amsterdam as a Whole"):
+            st.write(plot_map.plot_treemap_all(pallete=pallete, df=df))
 
 if __name__ == "__main__":
     main()
