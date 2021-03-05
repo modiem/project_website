@@ -11,5 +11,8 @@ matplotlib
 seaborn
 google-cloud-translate==2.0.1
 plotly==4.14.3
+streamlit_folium
+folium 
+
 
 
