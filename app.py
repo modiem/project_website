@@ -75,7 +75,7 @@ def main():
         > A choropleth map displays divided geographical areas or regions that are coloured in relation to a numeric variable. 
         > It allows to study how a variable evolutes along a territory. 
 
-        For demonstration purpose, this app includes a built-in data of Amsterdam gyms distributions. Opionally, you can upload your own data file.
+        For demonstration purpose, this app includes a built-in DataFrame about Amsterdam gyms. Opionally, you can upload your own data file.
         '''
         df = None
         geojson= None
@@ -88,7 +88,8 @@ def main():
         if options == "Amsterdam gyms distribution":
             '''
             ## 📥 Data file
-            **Note:** It should be a `.csv` file with a `location column`. A discrete color will be assined to each location on basis of density.
+            **Note:** 
+            It should be a `.csv` file with `location column`. A discrete color will be assined to each location on basis of density.
 
             '''
 
@@ -99,8 +100,7 @@ def main():
                 st.info("Location Column: `Stadsdeel`")
             '''
             ## 📥 `GeoJSON` to outline the shape
-            **Note:**
-            This `.json` file should have a idenfitying value under `feature.properties` that can map to your `location column`, they usually are area names or district code.
+            This `.json` file should have a idenfitying value under `feature.properties` that map to `location column`.
             '''
 
             with open("geojson.json") as f:
@@ -114,7 +114,7 @@ def main():
         if options == "Upload my own data":
             '''
             ## 📥 Data file
-            **Note:** It should be a `.csv` file with a `location column`. A discrete color will be assined to each location on basis of density.
+            It should be a `.csv` file with `location column`. A discrete color will be assined to each location on basis of density.
 
             '''
             st.markdown('''
@@ -133,7 +133,7 @@ def main():
             '''
             ## 📥 `GeoJSON` to outline the shape
             **Note:**
-            This `.json` file should have a idenfitying value under `feature.properties` that can map to your `location column`, they usually are area names or district code.
+            This `.json` file should have a idenfitying value under `feature.properties` that map to `location column`.
             
             [Example](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
             '''
@@ -159,7 +159,7 @@ def main():
         pallete = st.selectbox("Choose color pallet", ['brwnyl', 'curl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
         
         '''
-        ## 🎨 Map
+        ## ✏️ Map
         '''
         if df is not None and geojson is not None and location_col is not None and featureId is not None:
             result_map=choropleth.plot_choropleth(df=df,
