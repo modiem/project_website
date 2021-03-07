@@ -3,12 +3,15 @@ import datetime
 import time
 import requests
 import pandas as pd
+from io import StringIO
+import json
 from PIL import Image
 from Packages.utils import geocoder_here, reverse_geocoder_here
 from Packages.utils import query_api, format_name, get_poster, get_movie_info
 # from Packages.confirm_button_hack import cache_on_button_press
 from Packages.gcp import get_movie_name_lst, get_gyms
 from Packages import plot_map
+from Packages import choropleth
 from streamlit_folium import folium_static
 
 st.set_page_config(
@@ -27,10 +30,15 @@ CSS='''
         '''
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
+
+
 st.sidebar.markdown('## Navigation')
-page = st.sidebar.radio("Go to", ("Home", "Taxifare Prediction", "Movie Recommendation", "Data Viz--Gyms in Amsterdam"))
+page = st.sidebar.radio("Go to", ("Home",  "Taxifare Prediction", "Movie Recommendation", "Plot Choropleth Map", "TreeMap"))
 
 def main():
+    @st.cache
+    def get_gym_df():
+        return get_gyms()
     if page == "Home":
         css= '''
                     h1, p {
@@ -58,10 +66,108 @@ def main():
         👉 [Source Code](https://github.com/modiem/project_website)
 
         '''
-        st.write('<a href = "mailto: moyang.diem@example.com">👉 Any Comment?</a>', unsafe_allow_html=True)
+        st.write('<a href = "mailto: moyang.diem@example.com">👉 Contact</a>', unsafe_allow_html=True)
         
+    if page == "Plot Choropleth Map":
+        '''
+        # 🗺️ Plot Choropleth Map 
+        ###
+        > A choropleth map displays divided geographical areas or regions that are coloured in relation to a numeric variable. 
+        > It allows to study how a variable evolutes along a territory. 
+
+        For demonstration purpose, this app includes a built-in data of Amsterdam gyms distributions. Opionally, you can upload your own data file.
+        '''
+        df = None
+        geojson= None
+        location_col=None
+        featureId=None
+        options = st.radio("", ("Amsterdam gyms distribution", "Upload my own data"))
+
+        "Without further ado. **  Let's plot a choropleth!** 🎬"
         
+        if options == "Amsterdam gyms distribution":
+            '''
+            ## 📥 Data file
+            **Note:** It should be a `.csv` file with a `location column`. A discrete color will be assined to each location on basis of density.
+
+            '''
+
+            df = get_gym_df()
+            location_col = "Stadsdeel"
+            with st.beta_expander("🔎 Print DataFrame"):
+                st.write(df.sample(5))
+                st.info("Location Column: `Stadsdeel`")
+            '''
+            ## 📥 `GeoJSON` to outline the shape
+            **Note:**
+            This `.json` file should have a idenfitying value under `feature.properties` that can map to your `location column`, they usually are area names or district code.
+            '''
+
+            with open("geojson.json") as f:
+                geojson=json.load(f)
+            with st.beta_expander("🔎 Print geo info of one area"):
+                    st.write(geojson["features"][0])
+                    st.info("Identifying Key: `Stadsdeel`")
+            featureId = "Stadsdeel"
+            
+            
+        if options == "Upload my own data":
+            '''
+            ## 📥 Data file
+            **Note:** It should be a `.csv` file with a `location column`. A discrete color will be assined to each location on basis of density.
+
+            '''
+            st.markdown('''
+                ''')
+            uploaded_file = st.file_uploader("Upload a csv file")
+            if uploaded_file is not None:
+                df = pd.read_csv(uploaded_file)
+                st.success('Data file uploaded.')  
+                with st.beta_expander("🔎 Print DataFrame"):
+                    st.write(df.sample(5))    
+                st.markdown('''
+                    👇🏻 Choose the location column (a discrete color will be assigned to this area)
+                    ''')   
+                location_col=st.selectbox("From columns", df.columns.tolist())  
+                
+            '''
+            ## 📥 `GeoJSON` to outline the shape
+            **Note:**
+            This `.json` file should have a idenfitying value under `feature.properties` that can map to your `location column`, they usually are area names or district code.
+            
+            [Example](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
+            '''
+            uploaded_file_geo = st.file_uploader("Please upload a GeoJSON")
+                
+            if uploaded_file_geo is not None:
+                stringio = StringIO(uploaded_file_geo.getvalue().decode("utf-8"))
+                st.success('GeoJSON uploaded.')
+                geojson = json.load(stringio)
+                with st.beta_expander("🔎 Print geo info of one area"):
+                    st.write(geojson["features"][0])
+                st.markdown(
+                    '''
+                    👇🏻 Choose the identifying key from properties to draw a border line around.
+                    '''
+                )
+                if geojson:
+                    featureId = st.selectbox("From properties", list(geojson["features"][0]["properties"].keys()))
+
+        '''
+        ## 👘 Styling
+        '''        
+        pallete = st.selectbox("Choose color pallet", ['brwnyl', 'curl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
         
+        '''
+        ## 🎨 Map
+        '''
+        if df is not None and geojson is not None and location_col is not None and featureId is not None:
+            result_map=choropleth.plot_choropleth(df=df,
+                                    geojson=geojson,
+                                    location_col=location_col,
+                                    featureid=featureId,
+                                    pallete=pallete)
+            st.write(result_map)
         
 
     if page == "Taxifare Prediction":
@@ -237,55 +343,51 @@ def main():
                     with st.beta_expander(f"🍿 No.{i+1}: {title}"):
                         display_recommendation(i,recommendations)
                         
-    if page == "Data Viz--Gyms in Amsterdam":
+    if page == "TreeMap":
+        css= '''
+    
+                    body {
+                        background-color: #B2D3C2;
+                    }
+                    '''
+        st.write(f'<style>{css}</style>', unsafe_allow_html=True)
         
-        @st.cache
-        def get_gym_df():
-            return get_gyms()
-
+        
         df = get_gym_df()
         
 
         '''
-        # Gyms in Amsterdam
-        **Intro:**<br>
-        This project uses choropleth map and heat map to display infomation of Amsterdam sports providers.
-        
-        All data comes from [Amsterdam Municipality Website] (https://data.amsterdam.nl/):
-
-        - [Amsterdam Sports Providers (download)](https://api.data.amsterdam.nl/dcatd/datasets/a6WW_Ay-oeY_dQ/purls/aT3gGdCZycJHjg)
-            - The csv file contains gym infomation including name, category, address and website.
-        - [Amsterdam District Geojson](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
-            - The json file provides geographical features of Amsterdam districts.
-
-        
-        '''
-        pallete= "fall"
-        # '👉 Choose your own pallate': ['brwnyl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo']
-        '''
-        ## 🗺️ Choropleth Map
-        '''
-        st.markdown('<p style="text-align: center; font-style: oblique;">This choropleth map describing the distribution of gyms in Amsterdam.</p>', unsafe_allow_html=True)
-        
-        # with st.beta_expander("⬇️ Show map"):
-        st.plotly_chart(plot_map.plot_district_choropleth(pallete=pallete, df =df))
-        # with st.beta_expander("🛣️ In the form of Open Street "):
-        #     folium_static(plot_map.plot_choropleth_openstreet(df=df))
-        '''
-        ## 🌳 TreeMap
+        # Gyms in Amsterdam 🌳
         '''
         text = '''
-        This TreeMap interactively displays the proportion of different gym types in each district.<br>
+        This TreeMap interactively displays the proportion of different gyms in each district.
+        '''
+        st.markdown(f'<p style="text-align: center; font-style: oblique;">{text}</p>', unsafe_allow_html=True)
+
+        
+        pallete= "tempo"
+        # '👉 Choose your own pallate': ['brwnyl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo']
+      
+        text = '''
         💡 Click node/leaf for details.
         (Full-Sceen View Recommended)
         '''
-        st.markdown(f'<p style="text-align: center; font-style: oblique;">{text}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="text-align: center; ">{text}</p>', unsafe_allow_html=True)
 
         st.write(plot_map.plot_treemap_district(pallete=pallete, df=df))
         # with st.beta_expander("🍩 Divided in city districts"):
             
         with st.beta_expander("🏙️ Amsterdam as a Whole"):
             st.write(plot_map.plot_treemap_all(pallete=pallete, df=df))
+
+        '''    
+
+
+
+        #    
+        Data from [Amsterdam Municipality Website] (https://data.amsterdam.nl/)
+        '''
+
 
 if __name__ == "__main__":
     main()

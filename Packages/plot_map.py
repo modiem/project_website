@@ -17,7 +17,7 @@ sport_template = dict(
     layout = go.Layout(font=dict(
                             family="Old Standard TT",
                             ),
-                    #    paper_bgcolor="#EAE7D6",
+                       paper_bgcolor="#B2D3C2",
                         plot_bgcolor='rgba(0,0,0,0)',
                         hoverlabel=dict(
                                    bordercolor="black",
@@ -34,7 +34,7 @@ sport_template = dict(
 ))
 
 
-def plot_district_choropleth(pallete="fall", 
+def plot_district_choropleth(pallete="curl", 
                              df=None, 
                              geojson=geojson,
                              template=sport_template):
@@ -72,7 +72,7 @@ def plot_district_choropleth(pallete="fall",
 
     return fig
 
-def plot_treemap_all(pallete="fall", df=None, template=sport_template):
+def plot_treemap_all(pallete="curl", df=None, template=sport_template):
     fig = px.treemap(df,
                      path = ["All", "Sport_en"],
                      color = "Sport_count",
@@ -102,7 +102,7 @@ def plot_treemap_all(pallete="fall", df=None, template=sport_template):
     
     return fig
 
-def plot_treemap_district(pallete="fall", df=None, template=sport_template):
+def plot_treemap_district(pallete="curl", df=None, template=sport_template):
     fig = px.treemap(df,
                      path = ["All", 'Stadsdeel',"Sport_en"],
                      color = "sport_count_in_district",
