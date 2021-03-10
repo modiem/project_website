@@ -33,6 +33,8 @@ jobs:
         make install test clean
 
 # # 🤖 conf for GitHub Continuous Integration
+# # configure Heroku HEROKU_API_KEY and HEROKU_EMAIL in GitHub secrets
+
 
   deploy_heroku:
     runs-on: ubuntu-latest
