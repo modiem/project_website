@@ -1,9 +1,37 @@
 # ----------------------------------
 #         LOCAL SET UP
 # ----------------------------------
-
 install_requirements:
 	@pip install -r requirements.txt
+
+check_code: 
+	@flake8 app.py Packages/*.py
+
+black:
+	black app.py Packages/*.py
+
+test:
+	@coverage run -m pytest tests/*.py
+	@coverage report -m --omit=$(VIRTUAL_ENV)/lib/python*
+
+clean:
+	@rm -fr */__pycache__
+	@rm -fr __init__.py
+	@rm -fr build
+	@rm -fr dist
+	@rm -fr *.dist-info
+	@rm -fr *.egg-info
+	-@rm model.joblib
+
+install:
+	@pip install -e . -U 
+
+all: clean install test black check_code
+
+uninstal:
+	@python setup.py install --record files.txt
+	@cat files.txt | xargs rm -rf
+	@rm -f files.txt
 
 # ---------------------------------------
 #         STREAMLIT & HEROKU COMMANDS
@@ -32,18 +60,3 @@ heroku_google_var:
 deploy_heroku:
 	-@git push heroku master
 	-@heroku ps:scale web=1
-
-# ----------------------------------
-#    LOCAL INSTALL COMMANDS
-# ----------------------------------
-install:
-	@pip install . -U
-
-clean:
-	@rm -fr */__pycache__
-	@rm -fr __init__.py
-	@rm -fr build
-	@rm -fr dist
-	@rm -fr *.dist-info
-	@rm -fr *.egg-info
-	-@rm model.joblib

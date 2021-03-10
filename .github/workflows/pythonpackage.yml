@@ -1,3 +1,4 @@
+# # 🤖 conf for GitHub Continuous Integration
 name: Python package
 
 on:
@@ -27,3 +28,5 @@ jobs:
     - name: Install package and test
       run: |
         make install test clean
+
+# # 🤖 conf for GitHub Continuous Integration
