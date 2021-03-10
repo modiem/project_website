@@ -26,7 +26,20 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Install package and test
+      env:
+        HERE_API_KEY: ${{ secrets.HERE_API_KEY }}
+        OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
       run: |
         make install test clean
 
 # # 🤖 conf for GitHub Continuous Integration
+
+  deploy_heroku:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: akhileshns/heroku-deploy@v3.0.4 # This is the action
+      with:
+        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+        heroku_app_name: "modiem" # Must be unique in Heroku
+        heroku_email: ${{secrets.HEROKU_EMAIL}}
