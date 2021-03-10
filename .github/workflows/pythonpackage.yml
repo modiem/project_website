@@ -31,15 +31,12 @@ jobs:
         OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
       run: |
         make install test clean
+    - name: deploy_heroku
+      run:
+        make deploy_heroku
+
 
 # # 🤖 conf for GitHub Continuous Integration
 # # configure Heroku HEROKU_API_KEY and HEROKU_EMAIL in GitHub secrets
 
-
-  deploy_heroku:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      run:
-        make deploy_heroku
 
