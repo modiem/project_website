@@ -26,7 +26,7 @@ def plot_choropleth(df=None,
                     geojson=None, 
                     location_col=None, 
                     featureid=None, 
-                    pallete="crul",
+                    pallete="curl",
                     template=template):
 
     df.loc[:, "Count"] = 1

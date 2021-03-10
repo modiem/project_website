@@ -181,9 +181,9 @@ def main():
         '''
         # Taxi Fare Prediction
 
-        This page queries a [taxi fare model API]
-        (https://predict-taxifare-iwuisdewea-ez.a.run.app/predict_fare)
-         built with FastAPI, Docker, Google Cloud Run.(See [Source Code](https://github.com/modiem/taxifare))
+        This page queries a [Taxifare Model API]
+        (https://github.com/modiem/taxifare)
+         built with FastAPI, Docker, Google Cloud Run.
         '''
 
 
@@ -260,8 +260,8 @@ def main():
         '''
         # Movie Recommendation
 
-        This page queries a [movie recommendation API](https://movie-recommender-5i6qxbf74a-ez.a.run.app/recommendation)
-         built with FastAPI, Docker, Google Cloud Run.(See [Source Code](https://github.com/modiem/Movie-Recommendation))
+        This page queries a [movie recommendation API](https://github.com/modiem/Movie-Recommendation)
+         built with FastAPI, Docker, Google Cloud Run.
         '''
 
 
