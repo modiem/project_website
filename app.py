@@ -52,7 +52,7 @@ def main():
         st.write(f'<style>{css}</style>', unsafe_allow_html=True)
 
         '''
-        # Welcome to My Project Gallery!
+        # Welcom to my project gallery!
         '''
         
         
@@ -66,108 +66,100 @@ def main():
         👉 [Source Code](https://github.com/modiem/project_website)
 
         '''
-        st.write('<a href = "mailto: moyang.diem@example.com">👉 Contact</a>', unsafe_allow_html=True)
+        st.write('<a href = "mailto: moyang.diem@example.com">👉 Contact me</a>', unsafe_allow_html=True)
         
     if page == "Plot Choropleth Map":
         '''
-        # 🗺️ Plot Choropleth Map 
+        # Plot Choropleth Map 
+        ## Step-by-step guidance
         ###
         > A choropleth map displays divided geographical areas or regions that are coloured in relation to a numeric variable. 
         > It allows to study how a variable evolutes along a territory. 
-
-        For demonstration purpose, this app includes a built-in DataFrame about Amsterdam gyms. Opionally, you can upload your own data file.
-        '''
-        df = None
-        geojson= None
-        location_col=None
-        featureId=None
-        options = st.radio("", ("Amsterdam gyms distribution", "Upload my own data"))
-
-        "Without further ado. **  Let's plot a choropleth!** 🎬"
         
-        if options == "Amsterdam gyms distribution":
-            '''
-            ## 📥 Data file
-            **Note:** 
-            It should be a `.csv` file with `location column`. A discrete color will be assined to each location on basis of density.
+        '''
+        example = st.checkbox("Example: Amsterdam gym distribution")
 
-            '''
-
+        if example:
             df = get_gym_df()
             location_col = "Stadsdeel"
-            with st.beta_expander("🔎 Print DataFrame"):
-                st.write(df.sample(5))
-                st.info("Location Column: `Stadsdeel`")
-            '''
-            ## 📥 `GeoJSON` to outline the shape
-            This `.json` file should have a idenfitying value under `feature.properties` that map to `location column`.
-            '''
-
             with open("geojson.json") as f:
                 geojson=json.load(f)
-            with st.beta_expander("🔎 Print geo info of one area"):
-                    st.write(geojson["features"][0])
-                    st.info("Identifying Key: `Stadsdeel`")
             featureId = "Stadsdeel"
-            
-            
-        if options == "Upload my own data":
-            '''
-            ## 📥 Data file
-            It should be a `.csv` file with `location column`. A discrete color will be assined to each location on basis of density.
-
-            '''
-            st.markdown('''
-                ''')
-            uploaded_file = st.file_uploader("Upload a csv file")
-            if uploaded_file is not None:
-                df = pd.read_csv(uploaded_file)
-                st.success('Data file uploaded.')  
-                with st.beta_expander("🔎 Print DataFrame"):
-                    st.write(df.sample(5))    
-                st.markdown('''
-                    👇🏻 Choose the location column (a discrete color will be assigned to this area)
-                    ''')   
-                location_col=st.selectbox("From columns", df.columns.tolist())  
-                
-            '''
-            ## 📥 `GeoJSON` to outline the shape
-            **Note:**
-            This `.json` file should have a idenfitying value under `feature.properties` that map to `location column`.
-            
-            [Example](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
-            '''
-            uploaded_file_geo = st.file_uploader("Please upload a GeoJSON")
-                
-            if uploaded_file_geo is not None:
-                stringio = StringIO(uploaded_file_geo.getvalue().decode("utf-8"))
-                st.success('GeoJSON uploaded.')
-                geojson = json.load(stringio)
-                with st.beta_expander("🔎 Print geo info of one area"):
-                    st.write(geojson["features"][0])
-                st.markdown(
-                    '''
-                    👇🏻 Choose the identifying key from properties to draw a border line around.
-                    '''
-                )
-                if geojson:
-                    featureId = st.selectbox("From properties", list(geojson["features"][0]["properties"].keys()))
-
-        '''
-        ## 👘 Styling
-        '''        
-        pallete = st.selectbox("Choose color pallet", ['brwnyl', 'curl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
-        
-        '''
-        ## ✏️ Map
-        '''
-        if df is not None and geojson is not None and location_col is not None and featureId is not None:
-            result_map=choropleth.plot_choropleth(df=df,
+            example_map=choropleth.plot_choropleth(df=df,
                                     geojson=geojson,
                                     location_col=location_col,
-                                    featureid=featureId,
+                                    featureid=featureId)
+            st.write(example_map)
+            '''   
+            [data source] (https://data.amsterdam.nl/)
+            '''
+
+        '''
+        
+        **Like what you see?**
+
+        Simply follow these 3️⃣ steps to get your own choroploth map.🚀
+        '''
+        
+        
+        '''
+        ### 🗃 Data File `.csv`
+        **Require:** `location column` (A discrete color will be assined to each location on basis of density)
+
+        '''
+        df_ = None
+        geojson_= None
+        location_col_=None
+        featureId_=None
+        st.markdown('''
+            ''')
+        uploaded_file = st.file_uploader("Upload a csv file")
+        if uploaded_file is not None:
+            df_ = pd.read_csv(uploaded_file)
+            st.success('Data file uploaded.')  
+            with st.beta_expander("🔎 Print DataFrame Head"):
+                st.write(df_.sample(5))    
+            st.markdown('''
+                👇🏻 Choose the location column (a discrete color will be assigned to this area)
+                ''')   
+            location_col_=st.selectbox("From columns", df_.columns.tolist())  
+        '''  
+        ### 📐 `GeoJSON` for BaseMap 
+        **Require:** a identifying key under `features.properties` that can map to `location column`.
+        
+        [Example](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
+        '''
+        uploaded_file_geo = st.file_uploader("Upload a GeoJSON")
+            
+        if uploaded_file_geo is not None:
+            stringio = StringIO(uploaded_file_geo.getvalue().decode("utf-8"))
+            st.success('GeoJSON uploaded.')
+            geojson_ = json.load(stringio)
+            with st.beta_expander("🔎 Print the first feature"):
+                st.write(geojson_["features"][0])
+            st.markdown(
+                '''
+                👇🏻 Choose the identifying key from properties to draw a border line around.
+                '''
+            )
+            if geojson_:
+                featureId_ = st.selectbox("From properties", list(geojson_["features"][0]["properties"].keys()))
+        '''
+        ### 🪴 Styling
+        '''        
+        pallete = st.selectbox("Choose color pallet", ['teal','brwnyl', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
+
+        '''
+        ## 
+        '''
+        if df_ and geojson_ and location_col_ and featureId_:
+            result_map=choropleth.plot_choropleth(df=df_,
+                                    geojson=geojson_,
+                                    location_col=location_col_,
+                                    featureid=featureId_,
                                     pallete=pallete)
             st.write(result_map)
+
         
 
     if page == "Taxifare Prediction":
@@ -278,11 +270,11 @@ def main():
         options = st.multiselect('Type and select the title...', name_lst, ["Shawshank Redemption, The (1994)"])
         samples = ", '".join([f"{option}" for option in options])
         
-        "**👉 How many recommendaitons do you want to see?**"
+        "**👉 How many recommendaitons do you want?**"
         n_movies = st.slider('Select from 1 to 10: ', 1, 10, 1)
         st.write(n_movies)
         
-        "**👉 Tweak Recommendation Basis (Optional)**"
+        "**👉 (Optional) Tweak Recommendation Basis **"
         '''
         By default, recommendations would be talored based on a hybrid of `Metadata (Genres, Tag)` and `Viewer Rating` of the chosen movies.  
         Optionally, you can change the recommendation basis down below.
@@ -347,7 +339,7 @@ def main():
         css= '''
     
                     body {
-                        background-color: #B2D3C2;
+                        background-color: #effaf6;
                     }
                     '''
         st.write(f'<style>{css}</style>', unsafe_allow_html=True)
@@ -360,7 +352,7 @@ def main():
         # Gyms in Amsterdam 🌳
         '''
         text = '''
-        This TreeMap interactively displays the proportion of different gyms in each district.
+        This TreeMap interactively displays the proportion of different  in each district.
         '''
         st.markdown(f'<p style="text-align: center; font-style: oblique;">{text}</p>', unsafe_allow_html=True)
 

@@ -17,7 +17,7 @@ sport_template = dict(
     layout = go.Layout(font=dict(
                             family="Old Standard TT",
                             ),
-                       paper_bgcolor="#B2D3C2",
+                       paper_bgcolor="#effaf6",
                         plot_bgcolor='rgba(0,0,0,0)',
                         hoverlabel=dict(
                                    bordercolor="black",
