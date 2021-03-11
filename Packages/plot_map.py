@@ -1,171 +1,45 @@
-import json
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
 
-from folium.features import DivIcon
 import folium
+import numpy as np
+from folium import plugins
 
-
-
-with open("geojson.json") as f:
-    geojson = json.load(f)    
-# df = pd.read_csv("data/sports_provider_Amsterdam.csv")
-
-sport_template = dict(
-    layout = go.Layout(font=dict(
-                            family="Old Standard TT",
-                            ),
-                       paper_bgcolor="#effaf6",
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        hoverlabel=dict(
-                                   bordercolor="black",
-                                   bgcolor ="white",
-                                   font_size=15,
-                                   font_family="Rockwell"),
-                       title=dict(xanchor="center",
-                                  yanchor="top",
-                                  yref="paper",
-                                  ),
-                        margin={"r":0,"t":0,"l":0,"b":0},
-                        coloraxis_colorbar=dict(
-                                  outlinewidth = 0),
-))
-
-
-def plot_district_choropleth(pallete="curl", 
-                             df=None, 
-                             geojson=geojson,
-                             template=sport_template):
+def plot_path(pickup_latitude, pickup_longitude, dropoff_latitude, dropoff_longitude):
     '''
-    pallette examples:
-        - blues, magenta, burg, purpor, teal, inferno,
-          purp, tealgrn
+    This function will draw a line on map btw pick-up point and drop-off point.
     '''
-    district_count = pd.DataFrame(df.groupby("Stadsdeel").count()["Naam"]).reset_index()
-    district_count = district_count.rename(columns={"Stadsdeel": "District", "Naam": "Count"})
-    district_count["text"] = district_count["District"] + '<br>' + '<br>'+district_count["Count"].astype(str) + " Gyms in "+ district_count["District"]
-
-    fig=px.choropleth(district_count,
-                      geojson=geojson,
-                      locations="District",
-                      color="Count",
-                      color_continuous_scale=pallete,
-                      range_color=(1,207),
-                      labels={"Count": "Counts"},
-                      hover_name="District",
-                      hover_data=["Count"],
-                      featureidkey="properties.Stadsdeel",
-                      projection="mercator",
-                    #   title = "Amsterdam Sports Provider Concentration<br>(Hover for break down)"
-                      )
-    fig.update_geos(visible=False, # hide the base map and frame.
-                    fitbounds="locations") #automatically zoom the map to show just the area of interest.
-   
-    fig.update_traces(go.Choropleth(
-                    hovertemplate = district_count["text"],
-                    marker_line_color='white',
-                ))
-
-    fig.update_layout(template=template)
-
-    return fig
-
-def plot_treemap_all(pallete="curl", df=None, template=sport_template):
-    fig = px.treemap(df,
-                     path = ["All", "Sport_en"],
-                     color = "Sport_count",
-                     color_continuous_scale=pallete,
-                     range_color = [1, 75],
-                     hover_name = "Sport_en",
-                     color_continuous_midpoint=np.average(df["Sport_count"]),
-                     maxdepth=3
-                    )
-
-    fig.update_traces(go.Treemap(
-        textinfo = "label",
-        texttemplate = "%{label}<br><br>Percentage: %{percentParent:.1%} <br>Count: %{value}<br>",
-        hovertemplate = "%{label}  <br>Count: %{value}",
-        outsidetextfont = {"size": 20},
-    )
-                     )
-
-    fig.update_layout(
-        # title = dict(
-        #     text = "Proportion of Sports Type<br> (Click to Expand)"),
-        coloraxis_colorbar=dict(
-            title="Counts",
-            tickvals=[10,30, 50, 70]),
-        template=template
-    )
     
-    return fig
-
-def plot_treemap_district(pallete="curl", df=None, template=sport_template):
-    fig = px.treemap(df,
-                     path = ["All", 'Stadsdeel',"Sport_en"],
-                     color = "sport_count_in_district",
-                     color_continuous_scale=pallete,
-                     range_color = [1, 22],
-                     hover_name = "Sport_en",
-                     color_continuous_midpoint=np.average(df["sport_count_in_district"]),
-                     maxdepth=3
-                    )
-
-    fig.update_traces(go.Treemap(
-        hovertemplate = "%{label}  <br>Count: %{value}",
-        texttemplate = "%{label}<br><br>Percentage: %{percentParent:.1%} <br>Count: %{value}<br>",
-        outsidetextfont = {"size": 20}
-    )
-                     )
-
-    fig.update_layout(
-        # title = dict(
-        #     text = "Proportion of Sports Type<br>(Click to Expand)",),
-        coloraxis_colorbar=dict(
-            title="Counts",
-        ),
-        template=template,
-    )
     
-    return fig
+    ## Use geocoder to get coodinates from address.
+    pick_up = [pickup_latitude, pickup_longitude]
+    drop_off = [dropoff_latitude, dropoff_longitude]
+    route = [pick_up, drop_off]
+    loc = list((np.array(pick_up) + np.array(drop_off))/2)
 
-def plot_choropleth_openstreet(df=None, c="OrRd"):
-  
-    # Initialize the map: 52.3676° N, 4.9041° E
-    m = folium.Map(location=[52.3676, 4.9041], zoom_start=11)
+    ## base map
+    m=folium.Map(loc)
+
+    ## Draw two markers
+    folium.Marker(
+        pick_up, 
+        popup=f"<i>Pickup Point</i>", 
+        tootip="Click me!",
+        icon=folium.Icon(
+            color="blue", 
+            icon="street-view", 
+            prefix="fa"
+        )).add_to(m)
+
+    folium.Marker(
+        drop_off, 
+        popup=f"<i>Dropoff Point</i>", 
+        tootip="Click me!",
+        icon=folium.Icon(
+            color="lightred", 
+            icon="map-marker", 
+            prefix="fa"
+        )).add_to(m)
     
-    district_count = pd.DataFrame(df.groupby("Stadsdeel").count()["Naam"]).reset_index()
-    district_count = district_count.rename(columns={"Stadsdeel": "District", "Naam": "Count"})
-    district_count["text"] = district_count["District"] + '<br>' + '<br>'+district_count["Count"].astype(str) + " Sports Providers in the District."
-
-    # Add the color for the chloropleth:
-    m.choropleth(
-    geo_data=geojson,
-    name='choropleth',
-    data=district_count,
-    columns=['District', 'Count'],
-    key_on='feature.properties.Stadsdeel',
-    fill_color=c,
-    fill_opacity=0.7,
-    line_color="white",
-    legend_name='Number of Sports Providers'
-    )
-    folium.LayerControl().add_to(m)
-
-
-    for district in geojson["features"]:
-        
-        lon, lat = np.array(district["geometry"]["coordinates"]).mean(axis=1).flatten()
-        name = district["properties"]["Stadsdeel"]
-        folium.map.Marker(
-            [lat, lon],
-            icon=DivIcon(
-                icon_size=(8,8),
-                icon_anchor=(15,10),
-                html=f'<div style="font-size: 10pt; text_algnment=center;">{name}</div>',
-                )
-            ).add_to(m)
-
+    ## Draw a Route btw two points
+    plugins.AntPath(locations=route).add_to(m)
+    
     return m
