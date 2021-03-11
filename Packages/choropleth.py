@@ -17,7 +17,7 @@ template = dict(
                                   yanchor="top",
                                   yref="paper",
                                   ),
-                        margin={"r":0,"t":0,"l":0,"b":0},
+                        margin={"r":0,"t":100,"l":0,"b":0},
                         coloraxis_colorbar=dict(
                                   outlinewidth = 0),
 ))
@@ -27,6 +27,7 @@ def plot_choropleth(df=None,
                     location_col=None, 
                     featureid=None, 
                     pallete="curl",
+                    title= None,
                     template=template):
 
     df.loc[:, "Count"] = 1
@@ -40,6 +41,7 @@ def plot_choropleth(df=None,
                       color_continuous_scale=pallete,
                       featureidkey=f"properties.{featureid}",
                       projection="mercator",
+                      title = f"{title}<br>(Hover for counts per district)"
                       )
     fig.update_geos(visible=False, # hide the base map and frame.
                     fitbounds="locations") #automatically zoom the map to show just the area of interest.
