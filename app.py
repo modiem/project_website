@@ -10,7 +10,7 @@ from Packages.utils import geocoder_here, reverse_geocoder_here
 from Packages.utils import query_api, format_name, get_poster, get_movie_info
 # from Packages.confirm_button_hack import cache_on_button_press
 from Packages.gcp import get_movie_name_lst, get_gyms
-from Packages import plot_map
+from Packages.plot_map import plot_path
 from Packages import choropleth
 from streamlit_folium import folium_static
 
@@ -33,7 +33,7 @@ st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 
 st.sidebar.markdown('## Navigation')
-page = st.sidebar.radio("Go to", ("Home",  "Taxifare Prediction", "Movie Recommendation", "Plot Choropleth Map", "TreeMap"))
+page = st.sidebar.radio("Go to", ("Home",  "Taxifare Prediction", "Movie Recommendation", "Plot Choropleth Map"))
 
 def main():
     @st.cache
@@ -66,45 +66,48 @@ def main():
         👉 [Source Code](https://github.com/modiem/project_website)
 
         '''
-        st.write('<a href = "mailto: moyang.diem@example.com">👉 Contact me</a>', unsafe_allow_html=True)
+        st.write('<a href = "mailto: moyang.diem@example.com">👉 Contact</a>', unsafe_allow_html=True)
         
     if page == "Plot Choropleth Map":
         '''
         # Plot Choropleth Map 
         ## Step-by-step guidance
-        ###
-        > A choropleth map displays divided geographical areas or regions that are coloured in relation to a numeric variable. 
-        > It allows to study how a variable evolutes along a territory. 
+        
+        > *"A choropleth map displays divided geographical areas or regions that are coloured in relation to a numeric variable. 
+        > It allows to study how a variable evolutes along a territory."*
+        > 
+        > -- from Data to Viz
+        >
+        
+        Here is an example of Amsterdam gyms distribution. [(data source)] (https://data.amsterdam.nl/)
         
         '''
-        example = st.checkbox("Example: Amsterdam gym distribution")
+       
 
-        if example:
-            df = get_gym_df()
-            location_col = "Stadsdeel"
-            with open("geojson.json") as f:
-                geojson=json.load(f)
-            featureId = "Stadsdeel"
-            example_map=choropleth.plot_choropleth(df=df,
-                                    geojson=geojson,
-                                    location_col=location_col,
-                                    featureid=featureId)
-            st.write(example_map)
-            '''   
-            [data source] (https://data.amsterdam.nl/)
-            '''
+        df = get_gym_df()
+        location_col = "Stadsdeel"
+        with open("geojson.json") as f:
+            geojson=json.load(f)
+        featureId = "Stadsdeel"
+        example_map=choropleth.plot_choropleth(df=df,
+                                geojson=geojson,
+                                location_col=location_col,
+                                featureid=featureId,
+                                title = "Amsterdam gym concentration")
+        st.write(example_map)
+            
 
         '''
         
-        **Like what you see?**
+        **Like what you saw?**
 
-        Simply follow these 3️⃣ steps to get your own choroploth map.🚀
+        Simply follow these 3️⃣ steps to breate your own choroploth map.🚀
         '''
         
         
         '''
-        ### 🗃 Data File `.csv`
-        **Require:** `location column` (A discrete color will be assined to each location on basis of density)
+        ### 🗃 Input: DataFrame with region column
+        A discrete color will be assined to each region (eg. city, state) based on data distribution.
 
         '''
         df_ = None
@@ -116,43 +119,30 @@ def main():
         uploaded_file = st.file_uploader("Upload a csv file")
         if uploaded_file is not None:
             df_ = pd.read_csv(uploaded_file)
-            st.success('Data file uploaded.')  
-            with st.beta_expander("🔎 Print DataFrame Head"):
-                st.write(df_.sample(5))    
-            st.markdown('''
-                👇🏻 Choose the location column (a discrete color will be assigned to this area)
-                ''')   
-            location_col_=st.selectbox("From columns", df_.columns.tolist())  
+            location_col_=st.selectbox("the region column is", df_.columns.tolist())  
         '''  
-        ### 📐 `GeoJSON` for BaseMap 
-        **Require:** a identifying key under `features.properties` that can map to `location column`.
+        ### ✏️ Input: [`GeoJSON`](https://geojson.org/) for boundaries of districts
+        Under `features.properties` is the key identifying each region.
         
-        [Example](https://maps.amsterdam.nl/open_geodata/geojson.php?KAARTLAAG=GEBIED_STADSDELEN&THEMA=gebiedsindeling)
         '''
         uploaded_file_geo = st.file_uploader("Upload a GeoJSON")
             
         if uploaded_file_geo is not None:
             stringio = StringIO(uploaded_file_geo.getvalue().decode("utf-8"))
-            st.success('GeoJSON uploaded.')
             geojson_ = json.load(stringio)
-            with st.beta_expander("🔎 Print the first feature"):
-                st.write(geojson_["features"][0])
-            st.markdown(
-                '''
-                👇🏻 Choose the identifying key from properties to draw a border line around.
-                '''
-            )
+
             if geojson_:
-                featureId_ = st.selectbox("From properties", list(geojson_["features"][0]["properties"].keys()))
+                featureId_ = st.selectbox("the Identifying key is", list(geojson_["features"][0]["properties"].keys()))
         '''
-        ### 🪴 Styling
-        '''        
-        pallete = st.selectbox("Choose color pallet", ['teal','brwnyl', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
+        ### ⚙️ Layout
+        ''' 
+        title = st.text_input("title")
+        pallete = st.selectbox("palette", ['teal','brwnyl', 'cividis', 'fall', 'geyser', 'deep', 'tempo'])
 
         '''
         ## 
         '''
-        if df_ and geojson_ and location_col_ and featureId_:
+        if df_ is not None and geojson_ is not None and location_col_ is not None and featureId is not None and len(title)>0:
             result_map=choropleth.plot_choropleth(df=df_,
                                     geojson=geojson_,
                                     location_col=location_col_,
@@ -185,41 +175,22 @@ def main():
         pickup_time = st.time_input('pickup time', value=datetime.datetime.now())
         pickup_datetime = f'{pickup_date} {pickup_time}UTC'
 
-        geo = st.radio("Select a Geo Format:", ("by address", "by coordinates"))
-        if geo == "by coordinates":
-            ## Get coordinates from user input and get address
-            #pickup place
-            pickup_lng = st.number_input('pickup longitude', value=40.7614327)
-            pickup_lat = st.number_input('pickup latitude', value=-73.9798156)
-            pickup_adress = reverse_geocoder_here((pickup_lng, pickup_lat))['adress']
-            pickup_longitude = reverse_geocoder_here((pickup_lng, pickup_lat))['lng']
-            pickup_latitude = reverse_geocoder_here((pickup_lng, pickup_lat))['lat']
-            st.info(f"The pickup address: {pickup_adress}")
-            #dropoff place
-            dropoff_lng = st.number_input('dropoff longitude', value=40.6413111)
-            dropoff_lat = st.number_input('dropoff latitude', value=-73.7803331)
-            dropoff_adress = reverse_geocoder_here((dropoff_lng, dropoff_lat))['adress']
-            dropoff_longitude = reverse_geocoder_here((dropoff_lng, dropoff_lat))['lng']
-            dropoff_latitude = reverse_geocoder_here((dropoff_lng, dropoff_lat))['lat'] 
-            st.info(f"The dropoff address: {dropoff_adress}")
 
-        if geo == "by address":
-            ## Get address from user input
-            pickup_adress = st.text_input("pickup address", "251 Church St, New York, NY 10013")
-            dropoff_adress = st.text_input("dropoff address", "434 6th Ave, New York, NY 10011")
-            ## Get coordinates
-            try:
-                pickup_latitude = geocoder_here(pickup_adress)['lat']
-                pickup_longitude = geocoder_here(pickup_adress)['lng']
-                dropoff_latitude = geocoder_here(dropoff_adress)['lat']
-                dropoff_longitude = geocoder_here(dropoff_adress)['lng']
-            except:
-                st.error("Couln't retrive coordinates from the adreess.")
+        ## Get address from user input
+        pickup_adress = st.text_input("pickup address or post code", "Central Park, New York")
+        dropoff_adress = st.text_input("dropoff address or post code", "JFK Airport, New York")
+        ## Get coordinates
+        try:
+            pickup_latitude = geocoder_here(pickup_adress)['lat']
+            pickup_longitude = geocoder_here(pickup_adress)['lng']
+            dropoff_latitude = geocoder_here(dropoff_adress)['lat']
+            dropoff_longitude = geocoder_here(dropoff_adress)['lng']
+        except:
+            st.error("Couln't retrive coordinates from the adreess.")
 
         ## Draw a map
-        map_data = pd.DataFrame({"lat":[pickup_latitude,dropoff_latitude], 
-                                 "lon":[pickup_longitude,dropoff_longitude]})
-        st.map(data=map_data)
+        m = plot_path(pickup_latitude, pickup_longitude, dropoff_latitude, dropoff_longitude)
+        folium_static(m)
 
         passenger_count = st.number_input('passenger_count', min_value=1, max_value=8, step=1, value=1)
 
@@ -267,21 +238,23 @@ def main():
         ### Get & format params from user input ####
         ############################################
         "**☝️ To get started, please select one or more movies you've enjoyed!**"
-        options = st.multiselect('Type and select the title...', name_lst, ["Shawshank Redemption, The (1994)"])
+        options = st.multiselect('Type the title', name_lst, ["Dead Poets Society (1989)"])
         samples = ", '".join([f"{option}" for option in options])
         
-        "**👉 How many recommendaitons do you want?**"
+        "**👉 How many films to recommend?**"
         n_movies = st.slider('Select from 1 to 10: ', 1, 10, 1)
         st.write(n_movies)
         
-        "**👉 (Optional) Tweak Recommendation Basis **"
-        '''
-        By default, recommendations would be talored based on a hybrid of `Metadata (Genres, Tag)` and `Viewer Rating` of the chosen movies.  
-        Optionally, you can change the recommendation basis down below.
-        '''
-        basis="hybrid"
-        with st.beta_expander("Change basis"):
-            basis=st.radio("", ["metadata", "rating", "hybrid"])
+        "**👉 Choose Recommendation Basis **"
+       
+        option=st.radio("", ["People who liked these also liked...", "Movie features", "Combine both"])
+        if option == "People who liked these also liked...":
+            basis="rating"
+        if option == "Movie features":
+            basis="metadata"
+        if option == "Combine both":
+            basis="hybrid"
+
 
         '''
         
@@ -326,7 +299,7 @@ def main():
         _, col_m, _ = st.beta_columns(3)
         confirm = col_m.empty()
 
-        if confirm.button("📬 Check it!"):
+        if confirm.button("📬 Check!"):
             # confirm.markdown(f'<div style="text-align: center;">🕛</div>',unsafe_allow_html=True)
             display_recommendation(0, recommendations)
             for i in range(len(recommendations)):
@@ -335,51 +308,5 @@ def main():
                     with st.beta_expander(f"🍿 No.{i+1}: {title}"):
                         display_recommendation(i,recommendations)
                         
-    if page == "TreeMap":
-        css= '''
-    
-                    body {
-                        background-color: #effaf6;
-                    }
-                    '''
-        st.write(f'<style>{css}</style>', unsafe_allow_html=True)
-        
-        
-        df = get_gym_df()
-        
-
-        '''
-        # Gyms in Amsterdam 🌳
-        '''
-        text = '''
-        This TreeMap interactively displays the proportion of different  in each district.
-        '''
-        st.markdown(f'<p style="text-align: center; font-style: oblique;">{text}</p>', unsafe_allow_html=True)
-
-        
-        pallete= "tempo"
-        # '👉 Choose your own pallate': ['brwnyl', 'teal', 'cividis', 'fall', 'geyser', 'deep', 'tempo']
-      
-        text = '''
-        💡 Click node/leaf for details.
-        (Full-Sceen View Recommended)
-        '''
-        st.markdown(f'<p style="text-align: center; ">{text}</p>', unsafe_allow_html=True)
-
-        st.write(plot_map.plot_treemap_district(pallete=pallete, df=df))
-        # with st.beta_expander("🍩 Divided in city districts"):
-            
-        with st.beta_expander("🏙️ Amsterdam as a Whole"):
-            st.write(plot_map.plot_treemap_all(pallete=pallete, df=df))
-
-        '''    
-
-
-
-        #    
-        Data from [Amsterdam Municipality Website] (https://data.amsterdam.nl/)
-        '''
-
-
 if __name__ == "__main__":
     main()
