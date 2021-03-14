@@ -32,7 +32,7 @@ def get_movie_name_lst():
     name_lst=joblib.load(f"{filename}")
     os.remove(f"{filename}")
     print(f"{filename} deleted.")
-    return name_lst
+    return list(name_lst)
 
 def get_gyms():
     filename="sports_provider_Amsterdam.csv"

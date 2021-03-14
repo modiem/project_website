@@ -230,7 +230,7 @@ def main():
 
         @st.cache
         def get_select_box_data():
-            return get_movie_name_lst().tolist()
+            return get_movie_name_lst()
         name_lst = get_select_box_data()
         
 

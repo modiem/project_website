@@ -25,10 +25,17 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+    - name: copy credentials
+      run:
+        echo $GOOGLE_CREDENTIALS > google-credentials.json
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS}}
     - name: Install package and test
       env:
         HERE_API_KEY: ${{ secrets.HERE_API_KEY }}
         OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+
       run: |
         make install test clean
 
