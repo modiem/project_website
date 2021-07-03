@@ -1,14 +1,12 @@
-# Wecocome to my project website :hatched_chick:
+# [Wecocome to my project website](http://modiem.herokuapp.com/) :hatched_chick:
+This front page is used to showcase some of my data science & data visualisation projects.
 
 ## Content
 - Taxifare Prediction API :oncoming_taxi:
 - Movie Recommendation API :movie_camera:
-- [ ] Data Analysis and Visualisation :bar_chart:
+- Customized Choropleth Map
 
-### Tasks:
-- [x] create a google project and service account
-- [x] save all movie names to .csv
-- [ ] plug api to streamlit frontend
+
 
 
 
